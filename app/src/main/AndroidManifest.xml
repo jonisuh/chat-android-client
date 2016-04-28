@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.joni.basicchatapp">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity android:name=".Login" android:noHistory="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name=".ChatProvider"
+            android:authorities="com.example.joni.basicchatapp.ChatProvider"
+            android:enabled="true" />
+
+        <activity android:name=".MenuActivity" />
+
+        <service
+            android:name=".services.LoginService"
+            android:exported="false"></service>
+        <service
+            android:name=".services.LoadUsersService"
+            android:exported="false"></service>
+        <service
+            android:name=".services.LoadGroupsService"
+            android:exported="false"></service>
+        <receiver android:name=".services.LoginReceiver"></receiver>
+    </application>
+
+</manifest>
