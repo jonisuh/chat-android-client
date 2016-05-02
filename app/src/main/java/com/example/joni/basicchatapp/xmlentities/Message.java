@@ -70,4 +70,16 @@ public class Message {
     public String getUsername() {
         return username;
     }
+
+    public static String formatTimeStamp(String ts){
+
+        String[] splitTimestamp = ts.split(" ");
+        String date = splitTimestamp[0];
+        String time = splitTimestamp[1];
+
+        String[] splitDate = date.split("-");
+        String[] splitTime = time.split(":");
+
+        return splitDate[2] + "." + splitDate[1] + " " + splitTime[0] + ":" + splitTime[1];
+    }
 }

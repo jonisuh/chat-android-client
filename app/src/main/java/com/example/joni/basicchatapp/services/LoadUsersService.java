@@ -5,6 +5,8 @@ import android.content.AsyncQueryHandler;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
 
@@ -44,6 +46,28 @@ public class LoadUsersService extends IntentService {
                 UserParser parser =  new UserParser();
                 ArrayList<User> users = parser.parse(input);
 
+                String[] PROJECTION = new String[]{UsersTable.COLUMN_ID, UsersTable.COLUMN_NAME };
+                String SELECTION = "";
+                Cursor c = getContentResolver().query(ChatProvider.USERS_CONTENT_URI, PROJECTION, SELECTION, null, null);
+
+                boolean newUsers = false;
+                ArrayList<User> currentusers = new ArrayList<>();
+
+                if (c.getCount() != 0){
+                    while (c.moveToNext()) {
+                        currentusers.add(new User(c.getInt(0), c.getString(1)));
+                    }
+
+                    for(User u : currentusers){
+                        if(users.contains(u)){
+                            users.remove(u);
+                        }else{
+                            Uri uri = Uri.parse(ChatProvider.USERS_CONTENT_URI + "/"+ u.getId());
+                            getContentResolver().delete(uri,null,null);
+                        }
+                    }
+                }
+
                 for(User u : users){
 
                     ContentValues values = new ContentValues();
@@ -54,12 +78,15 @@ public class LoadUsersService extends IntentService {
 
             } catch (IOException e) {
                 e.printStackTrace();
+                broadcastToast("Network not connected.");
             } catch (XmlPullParserException e) {
                 e.printStackTrace();
+                broadcastToast("Error while receiving data from server...");
             }
 
 
         }
+        Log.d("LoadGroupsService", "ended");
     }
 
    private InputStream loadUsers() throws IOException {

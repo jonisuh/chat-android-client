@@ -51,6 +51,11 @@ public class UserParser {
         parser.require(XmlPullParser.START_TAG, ns, "user");
         int id = 0;
         String username = null;
+        String fname = null;
+        String lname = null;
+        String title = null;
+        String department = null;
+        String email = null;
 
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -61,11 +66,26 @@ public class UserParser {
                 id = readId(parser);
             } else if (name.equals("username")) {
                 username = readUserName(parser);
-            } else {
+            }
+            else if (name.equals("firstname")) {
+                fname = readFirstname(parser);
+            }
+            else if (name.equals("lastname")) {
+                lname = readLastname(parser);
+            }
+            else if (name.equals("title")) {
+                title = readTitle(parser);
+            }
+            else if (name.equals("department")) {
+                department = readDepartment(parser);
+            }
+            else if (name.equals("email")) {
+                email = readEmail(parser);
+            }else {
                 skip(parser);
             }
         }
-        return new User(id, username);
+        return new User(id, username,fname,lname,email,title,department);
     }
 
     // Processes ID tags in the feed.
@@ -75,15 +95,42 @@ public class UserParser {
         parser.require(XmlPullParser.END_TAG, ns, "userID");
         return id;
     }
-
-
-
     // Processes name tags in the feed.
     private String readUserName(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, "username");
         String username = readText(parser);
         parser.require(XmlPullParser.END_TAG, ns, "username");
         return username;
+    }
+    private String readLastname(XmlPullParser parser) throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, ns, "lastname");
+        String lastname = readText(parser);
+        parser.require(XmlPullParser.END_TAG, ns, "lastname");
+        return lastname;
+    }
+    private String readDepartment(XmlPullParser parser) throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, ns, "department");
+        String department = readText(parser);
+        parser.require(XmlPullParser.END_TAG, ns, "department");
+        return department;
+    }
+    private String readTitle(XmlPullParser parser) throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, ns, "title");
+        String title = readText(parser);
+        parser.require(XmlPullParser.END_TAG, ns, "title");
+        return title;
+    }
+    private String readEmail(XmlPullParser parser) throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, ns, "email");
+        String email = readText(parser);
+        parser.require(XmlPullParser.END_TAG, ns, "email");
+        return email;
+    }
+    private String readFirstname(XmlPullParser parser) throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, ns, "firstname");
+        String firstname = readText(parser);
+        parser.require(XmlPullParser.END_TAG, ns, "firstname");
+        return firstname;
     }
 
     // For the tags title and summary, extracts their text values.

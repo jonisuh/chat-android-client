@@ -9,24 +9,25 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Log;
 
 public class ChatProvider extends ContentProvider {
     private SQLiteDatabase thisDB;
     private DBHelper helper;
 
-    public static final String AUTHORITY = "com.example.joni.basicchatapp.MyProvider";
+    public static final String AUTHORITY = "com.example.joni.basicchatapp.ChatProvider";
     public static final String PROVIDER_NAME = "com.example.joni.basicchatapp.ChatProvider";
     public static final Uri GROUPS_CONTENT_URI = Uri.parse("content://" + PROVIDER_NAME + "/groups");
     public static final Uri USERS_CONTENT_URI = Uri.parse("content://" + PROVIDER_NAME + "/users");
-
-    public static final String _ID = "_id";
-    public static final String NAME = "name";
+    public static final Uri MESSAGES_CONTENT_URI = Uri.parse("content://" + PROVIDER_NAME + "/messages");
 
     private static final int GROUPS = 1;
     private static final int GROUP_ID = 2;
     private static final int USERS = 3;
     private static final int USER_ID = 4;
+    private static final int MESSAGES = 5;
+    private static final int MESSAGE_ID = 6;
 
     private static final UriMatcher uriMatcher;
 
@@ -36,6 +37,8 @@ public class ChatProvider extends ContentProvider {
         uriMatcher.addURI(PROVIDER_NAME, "groups/#", GROUP_ID);
         uriMatcher.addURI(PROVIDER_NAME, "users", USERS);
         uriMatcher.addURI(PROVIDER_NAME, "users/#", USER_ID);
+        uriMatcher.addURI(PROVIDER_NAME, "messages", MESSAGES);
+        uriMatcher.addURI(PROVIDER_NAME, "messages/#", MESSAGE_ID);
     }
 
     public boolean onCreate() {
@@ -52,7 +55,61 @@ public class ChatProvider extends ContentProvider {
         }
     }
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        return 0;
+        int uriType = uriMatcher.match(uri);
+        int rowsDeleted = 0;
+        String id;
+        switch (uriType) {
+            case USERS:
+                rowsDeleted = thisDB.delete(UsersTable.TABLE_USERS, selection,selectionArgs);
+                break;
+            case USER_ID:
+                id = uri.getLastPathSegment();
+                if (TextUtils.isEmpty(selection)) {
+                    rowsDeleted = thisDB.delete(UsersTable.TABLE_USERS,UsersTable.COLUMN_ID + "=" + id,null);
+                } else {
+                    rowsDeleted = thisDB.delete(UsersTable.TABLE_USERS,UsersTable.COLUMN_ID + "=" + id+ " and " + selection, selectionArgs);
+                }
+                break;
+            case GROUPS:
+                rowsDeleted = thisDB.delete(GroupsTable.TABLE_GROUPS, selection,
+                        selectionArgs);
+                break;
+            case GROUP_ID:
+                id = uri.getLastPathSegment();
+                if (TextUtils.isEmpty(selection)) {
+                    rowsDeleted = thisDB.delete(GroupsTable.TABLE_GROUPS,
+                            GroupsTable.COLUMN_ID + "=" + id,
+                            null);
+                } else {
+                    rowsDeleted = thisDB.delete(GroupsTable.TABLE_GROUPS,
+                            GroupsTable.COLUMN_ID + "=" + id
+                                    + " and " + selection,
+                            selectionArgs);
+                }
+                break;
+            case MESSAGES:
+                rowsDeleted = thisDB.delete(MessagesTable.TABLE_MESSAGES, selection,
+                        selectionArgs);
+                break;
+            case MESSAGE_ID:
+                id = uri.getLastPathSegment();
+                if (TextUtils.isEmpty(selection)) {
+                    rowsDeleted = thisDB.delete(MessagesTable.TABLE_MESSAGES,
+                            GroupsTable.COLUMN_ID + "=" + id,
+                            null);
+                } else {
+                    rowsDeleted = thisDB.delete(MessagesTable.TABLE_MESSAGES,
+                            GroupsTable.COLUMN_ID + "=" + id
+                                    + " and " + selection,
+                            selectionArgs);
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown URI: " + uri);
+        }
+        getContext().getContentResolver().notifyChange(uri, null);
+        return rowsDeleted;
+
     }
 
 
@@ -66,6 +123,10 @@ public class ChatProvider extends ContentProvider {
             case GROUPS:
                 return "vnd.android.cursor.dir/vnd.example.joni.basicchatapp ";
             case GROUP_ID:
+                return "vnd.android.cursor.item/vnd.example.joni.basicchatapp ";
+            case MESSAGES:
+                return "vnd.android.cursor.dir/vnd.example.joni.basicchatapp ";
+            case MESSAGE_ID:
                 return "vnd.android.cursor.item/vnd.example.joni.basicchatapp ";
             default:
                 throw new IllegalArgumentException("Unsupported URI: " + uri);
@@ -86,6 +147,10 @@ public class ChatProvider extends ContentProvider {
                 id = thisDB.insertWithOnConflict(DBHelper.TABLE_GROUPS, null, values, SQLiteDatabase.CONFLICT_IGNORE);
                 _uri = ContentUris.withAppendedId(GROUPS_CONTENT_URI, id);
                 break;
+            case MESSAGES:
+                id = thisDB.insertWithOnConflict(DBHelper.TABLE_MESSAGES, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+                _uri = ContentUris.withAppendedId(MESSAGES_CONTENT_URI, id);
+                break;
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);
         }
@@ -96,7 +161,6 @@ public class ChatProvider extends ContentProvider {
 
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 
-        Log.d("provider","in query");
         SQLiteQueryBuilder sqlBuilder = new SQLiteQueryBuilder();
 
         int uriType = uriMatcher.match(uri);
@@ -115,6 +179,13 @@ public class ChatProvider extends ContentProvider {
             case GROUP_ID:
                 sqlBuilder.setTables(GroupsTable.TABLE_GROUPS);
                 sqlBuilder.appendWhere(GroupsTable.COLUMN_ID + " = " + uri.getPathSegments().get(1));
+                break;
+            case MESSAGES:
+                sqlBuilder.setTables(MessagesTable.TABLE_MESSAGES);
+                break;
+            case MESSAGE_ID:
+                sqlBuilder.setTables(MessagesTable.TABLE_MESSAGES);
+                sqlBuilder.appendWhere(MessagesTable.COLUMN_ID + " = " + uri.getPathSegments().get(1));
                 break;
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);

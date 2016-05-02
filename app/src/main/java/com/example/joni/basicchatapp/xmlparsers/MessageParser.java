@@ -22,53 +22,102 @@ public class MessageParser {
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
             parser.setInput(in, null);
             parser.nextTag();
-           // return readFeed(parser);
-            return null;
+            return readFeed(parser);
         } finally {
             in.close();
         }
     }
 
-    private LoginCredentials readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
-        LoginCredentials credentials = new LoginCredentials();
+    private ArrayList<Message>  readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
+        ArrayList<Message> messages = new ArrayList();
 
-        parser.require(XmlPullParser.START_TAG, ns, "returninformation");
+        parser.require(XmlPullParser.START_TAG, ns, "messageXMLs");
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
             }
             String name = parser.getName();
             // Starts by looking for the entry tag
-            if (name.equals("userID")) {
-                credentials.setId(readId(parser));
-            } else if(name.equals("authCred")){
-                credentials.setAuthcredentials(readCredentials(parser));
+            if (name.equals("messageroot")) {
+                messages.add(readMessage(parser));
+            } else {
+                skip(parser);
+            }
+        }
+        return messages;
+    }
+
+    private Message readMessage(XmlPullParser parser) throws XmlPullParserException, IOException {
+        parser.require(XmlPullParser.START_TAG, ns, "messageroot");
+        int messageID = 0;
+        int userID = 0;
+        int groupID = 0;
+        String message = null;
+        String timestamp = null;
+        String username = null;
+
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.getEventType() != XmlPullParser.START_TAG) {
+                continue;
+            }
+            String name = parser.getName();
+            if (name.equals("messageID")) {
+                messageID = readMessageID(parser);
+            } else if (name.equals("userID")) {
+                userID = readUserID(parser);
+            } else if (name.equals("groupID")) {
+                groupID = readGroupID(parser);
+            } else if (name.equals("message")) {
+                message = readMessageContent(parser);
+            } else if (name.equals("timestamp")) {
+                timestamp = readTimestamp(parser);
+            } else if (name.equals("username")) {
+                username = readUsername(parser);
             }else {
                 skip(parser);
             }
         }
-        return credentials;
+        return new Message(userID,groupID,messageID,username,message,timestamp);
     }
-
 
     // Processes ID tags in the feed.
-    private int readId(XmlPullParser parser) throws IOException, XmlPullParserException {
+    private int readMessageID(XmlPullParser parser) throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, ns, "messageID");
+        int messageID = Integer.parseInt(readText(parser));
+        parser.require(XmlPullParser.END_TAG, ns, "messageID");
+        return messageID;
+    }
+    private int readUserID(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, "userID");
-        int id = Integer.parseInt(readText(parser));
+        int userID = Integer.parseInt(readText(parser));
         parser.require(XmlPullParser.END_TAG, ns, "userID");
-        return id;
+        return userID;
+    }
+    private int readGroupID(XmlPullParser parser) throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, ns, "groupID");
+        int groupID = Integer.parseInt(readText(parser));
+        parser.require(XmlPullParser.END_TAG, ns, "groupID");
+        return groupID;
     }
 
-
-
-    // Processes name tags in the feed.
-    private String readCredentials(XmlPullParser parser) throws IOException, XmlPullParserException {
-        parser.require(XmlPullParser.START_TAG, ns, "authCred");
-        String playername = readText(parser);
-        parser.require(XmlPullParser.END_TAG, ns, "authCred");
-        return playername;
+    private String readMessageContent(XmlPullParser parser) throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, ns, "message");
+        String message = readText(parser);
+        parser.require(XmlPullParser.END_TAG, ns, "message");
+        return message;
     }
-
+    private String readTimestamp(XmlPullParser parser) throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, ns, "timestamp");
+        String timestamp = readText(parser);
+        parser.require(XmlPullParser.END_TAG, ns, "timestamp");
+        return timestamp;
+    }
+    private String readUsername(XmlPullParser parser) throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, ns, "username");
+        String username = readText(parser);
+        parser.require(XmlPullParser.END_TAG, ns, "username");
+        return username;
+    }
     // For the tags title and summary, extracts their text values.
     private String readText(XmlPullParser parser) throws IOException, XmlPullParserException {
         String result = "";

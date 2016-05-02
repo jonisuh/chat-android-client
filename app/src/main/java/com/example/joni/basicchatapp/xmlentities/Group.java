@@ -1,5 +1,7 @@
 package com.example.joni.basicchatapp.xmlentities;
 
+import android.util.Log;
+
 /**
  * Created by Joni on 28.4.2016.
  */
@@ -27,5 +29,23 @@ public class Group {
     }
     public void setGroupname(String groupname){
         this.groupname = groupname;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (!Group.class.isAssignableFrom(obj.getClass())) {
+            return false;
+        }
+        final Group other = (Group) obj;
+        if (this.id != other.id) {
+            return false;
+        }
+        if (!this.groupname.equals(other.groupname)) {
+            return false;
+        }
+        return true;
     }
 }

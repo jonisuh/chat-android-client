@@ -11,7 +11,9 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Login" android:noHistory="true">
+        <activity
+            android:name=".Login"
+            android:noHistory="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -28,14 +30,26 @@
 
         <service
             android:name=".services.LoginService"
-            android:exported="false"></service>
+            android:exported="false" />
         <service
             android:name=".services.LoadUsersService"
-            android:exported="false"></service>
+            android:exported="false" />
         <service
             android:name=".services.LoadGroupsService"
-            android:exported="false"></service>
-        <receiver android:name=".services.LoginReceiver"></receiver>
+            android:exported="false" />
+        <service
+            android:name=".services.LoadGroupMessagesService"
+            android:exported="false" />
+        <service
+            android:name=".services.ChatWebSocketService"
+            android:exported="false" />
+        <service
+            android:name=".services.PostMessageService"
+            android:exported="false" />
+
+        <receiver android:name=".services.LoginReceiver" />
+
+        <activity android:name=".ChatScreenActivity"></activity>
     </application>
 
 </manifest>

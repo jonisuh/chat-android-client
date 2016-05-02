@@ -4,6 +4,8 @@ import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.util.Log;
 
 import com.example.joni.basicchatapp.ChatProvider;
@@ -45,24 +47,58 @@ public class LoadGroupsService extends IntentService {
                 ArrayList<Group> groups = parser.parse(inputgroups);
                 ArrayList<Group> adminedgroups = parser.parse(inputadmined);
 
+                String[] PROJECTION = new String[]{GroupsTable.COLUMN_ID, GroupsTable.COLUMN_NAME };
+                String SELECTION = "";
+                Cursor c = getContentResolver().query(ChatProvider.GROUPS_CONTENT_URI, PROJECTION, SELECTION, null, null);
+
+                boolean newGroups = false;
+                ArrayList<Group> currentgroups = new ArrayList<>();
+                Log.d("LoadGroupsService",""+groups.size());
+                for(Group g : groups){
+                    Log.d("LoadGroupsService","in group"+ +g.getId());
+                }
+                if (c.getCount() != 0) {
+                    while (c.moveToNext()) {
+                        currentgroups.add(new Group(c.getInt(0), c.getString(1)));
+                        Log.d("LoadGroupsService", "added group to current groups");
+                    }
+
+                    for(Group g : currentgroups){
+                        if(groups.contains(g)){
+                            Log.d("LoadGroupsService", g.getId()+" removed from new groups");
+                            groups.remove(g);
+                        }else{
+                            Uri uri = Uri.parse(ChatProvider.GROUPS_CONTENT_URI + "/"+ g.getId());
+                            getContentResolver().delete(uri,null,null);
+                            Log.d("LoadGroupsService", "deleted " + g.getId());
+                        }
+                    }
+                }
+
                 for(Group g : groups){
 
                     ContentValues values = new ContentValues();
                     values.put(GroupsTable.COLUMN_ID, g.getId());
                     values.put(GroupsTable.COLUMN_NAME, g.getGroupname());
                     getContentResolver().insert(ChatProvider.GROUPS_CONTENT_URI, values);
+                    Log.d("LoadGroupsService", "inserted "+g.getId());
                 }
+
                 for(Group g : adminedgroups){
                     Log.d("LoadGroupsService",""+g.getId());
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+                broadcastToast("Network not connected");
+                Log.d("LoadGroupsService", "Network not connected");
             } catch (XmlPullParserException e) {
                 e.printStackTrace();
+                broadcastToast("Error while receiving data from server...");
             }
 
 
         }
+        Log.d("LoadGroupsService", "ended");
     }
 
     private InputStream loadAdmined() throws IOException{
