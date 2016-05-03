@@ -1,6 +1,7 @@
 package com.example.joni.basicchatapp;
 
 import android.app.Activity;
+import android.app.DialogFragment;
 import android.app.LoaderManager;
 import android.content.AsyncQueryHandler;
 import android.content.ComponentName;
@@ -14,11 +15,17 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.PopupMenu;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,13 +34,16 @@ import com.example.joni.basicchatapp.services.ChatWebSocketService;
 import com.example.joni.basicchatapp.services.LoadGroupsService;
 import com.example.joni.basicchatapp.services.LoadUsersService;
 
-public class MenuActivity extends Activity implements LoaderManager.LoaderCallbacks<Cursor>{
+public class MenuActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
     private final String logvar = "MainActivity: ";
 
-    public final static String SERVER_URI = "http://10.112.201.215:8080/ProjectV1/API/";
+    public final static String SERVER_URI = "http://192.168.43.132:8080/ProjectV1/API/";
+    public final static String WS_URI = "ws://192.168.43.132:8080/ProjectV1/chatendpoint";
+
+    //public final static String SERVER_URI = "http://10.112.201.215:8080/ProjectV1/API/";
     //public final static String SERVER_URI = "http://192.168.0.102:8080/ProjectV1/API/";
     //public final static String WS_URI = "ws://192.168.0.102:8080/ProjectV1/chatendpoint";
-    public final static String WS_URI = "ws://10.112.201.215:8080/ProjectV1/chatendpoint";
+    //public final static String WS_URI = "ws://10.112.201.215:8080/ProjectV1/chatendpoint";
 
     private SimpleCursorAdapter myAdapter;
     private TextView usernamefield;
@@ -42,10 +52,13 @@ public class MenuActivity extends Activity implements LoaderManager.LoaderCallba
     private String SELECTION = "";
     private Uri CONTENT_URI = ChatProvider.GROUPS_CONTENT_URI;
 
+    private Button usersbutton;
+    private Button groupsbutton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
+
         lv = (ListView)findViewById(R.id.listView);
 
         usernamefield = (TextView) findViewById(R.id.textView2);
@@ -58,10 +71,9 @@ public class MenuActivity extends Activity implements LoaderManager.LoaderCallba
         handler.execute();
 
         initListView();
-
         getLoaderManager().initLoader(0, null, this);
 
-        Button groupsbutton = (Button) findViewById(R.id.button);
+        groupsbutton = (Button) findViewById(R.id.button);
         groupsbutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -69,9 +81,13 @@ public class MenuActivity extends Activity implements LoaderManager.LoaderCallba
                 CONTENT_URI = ChatProvider.GROUPS_CONTENT_URI;
                 changeToGroupAdapter();
                 getLoaderManager().restartLoader(0, null, MenuActivity.this);
+                groupsbutton.setBackgroundColor(0xFF29419e);
+                usersbutton.setBackgroundResource(R.drawable.blue_button);
             }
         });
-        Button usersbutton = (Button) findViewById(R.id.button2);
+        groupsbutton.setBackgroundColor(0xFF29419e);
+
+        usersbutton = (Button) findViewById(R.id.button2);
         usersbutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -79,6 +95,8 @@ public class MenuActivity extends Activity implements LoaderManager.LoaderCallba
                 CONTENT_URI = ChatProvider.USERS_CONTENT_URI;
                 changeToUserAdapter();
                 getLoaderManager().restartLoader(0, null, MenuActivity.this);
+                usersbutton.setBackgroundColor(0xFF29419e);
+                groupsbutton.setBackgroundResource(R.drawable.blue_button);
             }
         });
 
@@ -93,8 +111,24 @@ public class MenuActivity extends Activity implements LoaderManager.LoaderCallba
                 startActivity(backtologin);
             }
         });
-
-
+        Button button3 = (Button) findViewById(R.id.button3);
+        button3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogFragment dialog = new CreateGroupDialog();
+                dialog.show(getFragmentManager(), "CreateDialog");
+            }
+        });
+        Button menubutton = (Button) findViewById(R.id.button4);
+        menubutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PopupMenu menu = new PopupMenu(MenuActivity.this, v);
+                MenuInflater inflater = menu.getMenuInflater();
+                inflater.inflate(R.menu.menu_main, menu.getMenu());
+                menu.show();
+            }
+        });
 
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -111,7 +145,8 @@ public class MenuActivity extends Activity implements LoaderManager.LoaderCallba
                 if(view.getId() == R.id.grouplistitem){
                     selected = groupview.getText().toString();
                     Intent openchatintent = new Intent(MenuActivity.this, ChatScreenActivity.class);
-                    Log.d("provider", ""+id);
+                    openchatintent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+                    openchatintent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                     openchatintent.putExtra("groupID",(int) id);
                     startActivity(openchatintent);
                 }else{
@@ -179,6 +214,7 @@ public class MenuActivity extends Activity implements LoaderManager.LoaderCallba
                 Log.d("MenuActivity", "" + c.getColumnCount());
                 c.moveToNext();
                 usernamefield.setText(c.getString(0));
+                c.close();
             }
         }
     }

@@ -2,7 +2,9 @@ package com.example.joni.basicchatapp;
 
 import android.app.Activity;
 import android.app.LoaderManager;
+import android.app.NotificationManager;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -12,6 +14,7 @@ import android.net.Uri;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -29,7 +32,7 @@ import com.example.joni.basicchatapp.services.PostMessageService;
 import com.example.joni.basicchatapp.xmlentities.Group;
 import com.example.joni.basicchatapp.xmlentities.Message;
 
-public class ChatScreenActivity extends Activity implements LoaderManager.LoaderCallbacks<Cursor>{
+public class ChatScreenActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 
     private MessageCursorAdapter messageadapter;
     private TextView usernamefield;
@@ -50,7 +53,13 @@ public class ChatScreenActivity extends Activity implements LoaderManager.Loader
         Intent i = getIntent();
         groupID = i.getIntExtra("groupID", -1);
         TextView test = (TextView) findViewById(R.id.textView3);
-        test.setText(""+groupID);
+        test.setText("" + groupID);
+
+        /*NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        notificationManager.cancel(groupID); */
+
+        NotificationSender.getInstance().cancelNotification(groupID,this);
 
         lv = (ListView) findViewById(R.id.messageview);
 
@@ -83,12 +92,7 @@ public class ChatScreenActivity extends Activity implements LoaderManager.Loader
 
                         inputfield.setText("");
 
-                        View view = getCurrentFocus();
-                        if (view != null) {
-                            view.clearFocus();
-                            InputMethodManager imm = (InputMethodManager)getSystemService(ChatScreenActivity.this.INPUT_METHOD_SERVICE);
-                            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                        }
+
                     }else{
                         t = Toast.makeText(ChatScreenActivity.this,"Message is empty.",Toast.LENGTH_SHORT);
                         t.show();
@@ -127,6 +131,7 @@ public class ChatScreenActivity extends Activity implements LoaderManager.Loader
 
         Intent loadmessagesintent = new Intent(this, LoadGroupMessagesService.class);
         loadmessagesintent.putExtra("groupID",groupID);
+        loadmessagesintent.putExtra("messageID",0);
         startService(loadmessagesintent);
 
         activityVisible = true;

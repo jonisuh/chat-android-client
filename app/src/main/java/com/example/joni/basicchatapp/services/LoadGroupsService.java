@@ -12,6 +12,7 @@ import com.example.joni.basicchatapp.ChatProvider;
 import com.example.joni.basicchatapp.GroupsTable;
 import com.example.joni.basicchatapp.LoginManager;
 import com.example.joni.basicchatapp.MenuActivity;
+import com.example.joni.basicchatapp.MessagesTable;
 import com.example.joni.basicchatapp.UsersTable;
 import com.example.joni.basicchatapp.xmlentities.Group;
 import com.example.joni.basicchatapp.xmlentities.User;
@@ -62,7 +63,7 @@ public class LoadGroupsService extends IntentService {
                         currentgroups.add(new Group(c.getInt(0), c.getString(1)));
                         Log.d("LoadGroupsService", "added group to current groups");
                     }
-
+                    c.close();
                     for(Group g : currentgroups){
                         if(groups.contains(g)){
                             Log.d("LoadGroupsService", g.getId()+" removed from new groups");
@@ -70,7 +71,8 @@ public class LoadGroupsService extends IntentService {
                         }else{
                             Uri uri = Uri.parse(ChatProvider.GROUPS_CONTENT_URI + "/"+ g.getId());
                             getContentResolver().delete(uri,null,null);
-                            Log.d("LoadGroupsService", "deleted " + g.getId());
+                            int i = getContentResolver().delete(ChatProvider.MESSAGES_CONTENT_URI, MessagesTable.COLUMN_GROUP_ID+"="+g.getId(),null);
+                            Log.d("LoadGroupsService", "deleted " + g.getId()+" messages "+i);
                         }
                     }
                 }

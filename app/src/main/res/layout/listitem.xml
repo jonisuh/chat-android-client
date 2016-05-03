@@ -11,10 +11,4 @@
         android:text=""
         android:id="@+id/fieldcontent" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="group"
-        android:id="@+id/fieldtype" />
 </LinearLayout>

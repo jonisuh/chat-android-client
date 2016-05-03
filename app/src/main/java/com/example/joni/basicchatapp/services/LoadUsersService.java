@@ -57,7 +57,7 @@ public class LoadUsersService extends IntentService {
                     while (c.moveToNext()) {
                         currentusers.add(new User(c.getInt(0), c.getString(1)));
                     }
-
+                    c.close();
                     for(User u : currentusers){
                         if(users.contains(u)){
                             users.remove(u);

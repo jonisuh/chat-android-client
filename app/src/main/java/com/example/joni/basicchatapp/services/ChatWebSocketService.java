@@ -20,6 +20,7 @@ import com.example.joni.basicchatapp.ChatProvider;
 import com.example.joni.basicchatapp.ChatScreenActivity;
 import com.example.joni.basicchatapp.GroupsTable;
 import com.example.joni.basicchatapp.MenuActivity;
+import com.example.joni.basicchatapp.NotificationSender;
 import com.example.joni.basicchatapp.R;
 
 import de.tavendo.autobahn.WebSocketConnection;
@@ -75,10 +76,23 @@ public class ChatWebSocketService extends Service {
                                 startService(loadmessagesintent);
 
                                 if(!ChatScreenActivity.isVisible() || ChatScreenActivity.getGroupID() != groupID){
-                                    sendNotification(groupID);
+                                    //sendNotification(groupID);
+
+                                    String[] GNAMEPROJECTION = new String[]{GroupsTable.COLUMN_ID,GroupsTable.COLUMN_NAME};
+                                    String GNAMESELECTION = GroupsTable.COLUMN_ID+"="+groupID;
+                                    Cursor namecursor = getContentResolver().query(ChatProvider.GROUPS_CONTENT_URI, GNAMEPROJECTION, GNAMESELECTION, null, null);
+
+                                    String groupname = "";
+                                    if(namecursor != null && namecursor.getCount() > 0){
+                                        namecursor.moveToNext();
+                                        groupname = namecursor.getString(1);
+                                        namecursor.close();
+                                    }
+
+                                    NotificationSender.getInstance().sendNotification(groupID,groupname,ChatWebSocketService.this);
                                 }
                             }
-
+                            c.close();
                         }
 
                         @Override
@@ -129,22 +143,6 @@ public class ChatWebSocketService extends Service {
     @Override
     public void onDestroy() {
         Log.d("WSService", "Service shutdown");
-    }
-
-    private void sendNotification(int id){
-        Intent notificationIntent = new Intent(this, ChatScreenActivity.class);
-        notificationIntent.putExtra("groupID",id);
-        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this).setContentTitle("Basic Chat App").setContentText("New message in group "+id).setSmallIcon(R.drawable.notification_icon).setContentIntent(pendingIntent);
-        Notification notification = builder.build();
-
-        notification.flags |= Notification.FLAG_AUTO_CANCEL;
-
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(0, notification);
     }
 
     public class ChatBinder extends Binder {
