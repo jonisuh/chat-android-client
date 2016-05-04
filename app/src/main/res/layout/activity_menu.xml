@@ -124,35 +124,15 @@
             <Button
                 android:layout_width="49dp"
                 android:layout_height="wrap_content"
-                android:id="@+id/button4"
+                android:id="@+id/menubutton"
                 android:background="@drawable/abc_ic_menu_moreoverflow_mtrl_alpha"
-                android:textColor="#ffffff" />
+                android:textColor="#ffffff"
+                android:backgroundTint="#ffffff" />
 
         </LinearLayout>
     </LinearLayout>
-        <Button
-            android:id="@+id/logoutbutton"
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:height="20dp"
-            android:text="Logout"
-            android:textSize="8dp"
-            android:layout_gravity="right"
-            android:layout_below="@+id/linearLayout2"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="27dp" />
 
-        <Button
-            android:id="@+id/button3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="NG"
-            android:layout_alignBaseline="@+id/logoutbutton"
-            android:layout_alignBottom="@+id/logoutbutton"
-            android:layout_alignParentStart="true" />
-
-        <ListView
+    <ListView
             android:id="@+id/listView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -160,7 +140,8 @@
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
             android:layout_alignParentStart="true"
-            android:layout_below="@+id/logoutbutton" />
+            android:layout_below="@+id/linearLayout2"
+        android:layout_marginTop="5dp" />
 
 
     <!--

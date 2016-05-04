@@ -82,4 +82,19 @@ public class Message {
 
         return splitDate[2] + "." + splitDate[1] + " " + splitTime[0] + ":" + splitTime[1];
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (!Message.class.isAssignableFrom(obj.getClass())) {
+            return false;
+        }
+        final Message other = (Message) obj;
+        if (this.messageID != other.messageID) {
+            return false;
+        }
+        return true;
+    }
 }

@@ -76,8 +76,34 @@ public class LoadGroupMessagesService extends IntentService {
                     MessageParser parser = new MessageParser();
                     ArrayList<Message> messages = parser.parse(messagestream);
 
+                    String[] PROJECTION = new String[]{MessagesTable.COLUMN_ID};
+                    String SELECTION = MessagesTable.COLUMN_GROUP_ID+"="+groupID;
+                    Cursor c = getContentResolver().query(ChatProvider.MESSAGES_CONTENT_URI, PROJECTION, SELECTION, null, null);
+                    Log.d("LoadMessagesService", "current messages size "+c.getCount());
+                    ArrayList<Message> currentmessages = new ArrayList<>();
+
+                    if (c.getCount() != 0 && intentmsgID == 0) {
+                        while (c.moveToNext() ) {
+                            Message currentmsg = new Message();
+                            currentmsg.setMessageID(c.getInt(0));
+
+                            currentmessages.add(currentmsg);
+                            //Log.d("LoadMessagesService", currentmsg.getMessageID()+" added group to current groups");
+                        }
+                        c.close();
+                        for(Message m : currentmessages){
+                            if(messages.contains(m)){
+                                //Log.d("LoadMessagesService", m.getMessageID()+" removed from new groups");
+                                messages.remove(m);
+                            }else{
+                                Uri uri = Uri.parse(ChatProvider.MESSAGES_CONTENT_URI + "/" + m.getMessageID());
+                                getContentResolver().delete(uri, null,null);
+                            }
+                        }
+                    }
+
                     for (Message m : messages) {
-                        Log.d("LoadMessagesService","received from server "+ m.getMessageID() + "|" + m.getUserID() + "|" + m.getGroupID() + "   " + m.getMessage());
+                        //Log.d("LoadMessagesService","received from server "+ m.getMessageID() + "|" + m.getUserID() + "|" + m.getGroupID() + "   " + m.getMessage());
                         ContentValues values = new ContentValues();
                         values.put(MessagesTable.COLUMN_ID, m.getMessageID());
                         values.put(MessagesTable.COLUMN_USER_ID, m.getUserID());
@@ -88,10 +114,11 @@ public class LoadGroupMessagesService extends IntentService {
                         getContentResolver().insert(ChatProvider.MESSAGES_CONTENT_URI, values);
                     }
 
+                    Log.d("LoadMessagesService", messages.size()+" new messages added");
                 } catch (IOException e) {
                     e.printStackTrace();
                     broadcastToast("Network not connected");
-                    Log.d("LoadGroupsService", "Network not connected");
+                    Log.d("LoadMessagesService", "Network not connected");
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();
                     broadcastToast("Error while receiving data from server...");

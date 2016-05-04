@@ -143,6 +143,7 @@ public class ChatWebSocketService extends Service {
     @Override
     public void onDestroy() {
         Log.d("WSService", "Service shutdown");
+        mConnection.disconnect();
     }
 
     public class ChatBinder extends Binder {

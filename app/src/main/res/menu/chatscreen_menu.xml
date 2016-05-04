@@ -4,12 +4,12 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.example.joni.basicchatapp.MenuActivity">
+    tools:context="com.example.joni.basicchatapp.ChatScreenActivity">
 
     <item
-        android:id="@+id/action_new_group"
+        android:id="@+id/action_leave_group"
         android:orderInCategory="100"
-        android:title="New group"
+        android:title="Leave group"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_refresh"

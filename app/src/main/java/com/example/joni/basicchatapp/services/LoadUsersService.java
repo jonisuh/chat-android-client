@@ -46,7 +46,7 @@ public class LoadUsersService extends IntentService {
                 UserParser parser =  new UserParser();
                 ArrayList<User> users = parser.parse(input);
 
-                String[] PROJECTION = new String[]{UsersTable.COLUMN_ID, UsersTable.COLUMN_NAME };
+                String[] PROJECTION = new String[]{UsersTable.COLUMN_ID, UsersTable.COLUMN_NAME, UsersTable.COLUMN_FIRSTNAME,UsersTable.COLUMN_LASTNAME,UsersTable.COLUMN_EMAIL,UsersTable.COLUMN_TITLE,UsersTable.COLUMN_DEPARTMENT};
                 String SELECTION = "";
                 Cursor c = getContentResolver().query(ChatProvider.USERS_CONTENT_URI, PROJECTION, SELECTION, null, null);
 
@@ -55,7 +55,7 @@ public class LoadUsersService extends IntentService {
 
                 if (c.getCount() != 0){
                     while (c.moveToNext()) {
-                        currentusers.add(new User(c.getInt(0), c.getString(1)));
+                        currentusers.add(new User(c.getInt(0), c.getString(1),c.getString(2),c.getString(3),c.getString(4),c.getString(5),c.getString(6)));
                     }
                     c.close();
                     for(User u : currentusers){
@@ -73,6 +73,11 @@ public class LoadUsersService extends IntentService {
                     ContentValues values = new ContentValues();
                     values.put(UsersTable.COLUMN_ID, u.getId());
                     values.put(UsersTable.COLUMN_NAME, u.getUsername());
+                    values.put(UsersTable.COLUMN_FIRSTNAME, u.getFirstname());
+                    values.put(UsersTable.COLUMN_LASTNAME, u.getLastname());
+                    values.put(UsersTable.COLUMN_DEPARTMENT, u.getDepartment());
+                    values.put(UsersTable.COLUMN_TITLE, u.getTitle());
+                    values.put(UsersTable.COLUMN_EMAIL, u.getEmail());
                     getContentResolver().insert(ChatProvider.USERS_CONTENT_URI, values);
                 }
 

@@ -42,6 +42,5 @@ public class MenuCursorAdapter extends SimpleCursorAdapter {
     public void bindView(View view, Context context, Cursor cursor) {
         super.bindView(view, context, cursor);
 
-
     }
 }

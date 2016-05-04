@@ -2,6 +2,7 @@ package com.example.joni.basicchatapp.services;
 
 import android.app.IntentService;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -54,14 +55,14 @@ public class LoadGroupsService extends IntentService {
 
                 boolean newGroups = false;
                 ArrayList<Group> currentgroups = new ArrayList<>();
-                Log.d("LoadGroupsService",""+groups.size());
+               /* Log.d("LoadGroupsService",""+groups.size());
                 for(Group g : groups){
                     Log.d("LoadGroupsService","in group"+ +g.getId());
-                }
+                } */
                 if (c.getCount() != 0) {
                     while (c.moveToNext()) {
                         currentgroups.add(new Group(c.getInt(0), c.getString(1)));
-                        Log.d("LoadGroupsService", "added group to current groups");
+                        //Log.d("LoadGroupsService", "added group to current groups");
                     }
                     c.close();
                     for(Group g : currentgroups){

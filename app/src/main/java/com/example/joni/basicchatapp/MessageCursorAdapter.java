@@ -48,7 +48,7 @@ public class MessageCursorAdapter extends SimpleCursorAdapter {
         SharedPreferences pref = context.getSharedPreferences("BasicChatAppCredentials", 0);
         int id = pref.getInt("id", -1);
         int senderid = cursor.getInt(2);
-        Log.d("MessageAdapter", senderid + " " + id+" "+cursor.getInt(0)+" "+cursor.getString(4));
+        Log.d("MessageAdapter", senderid + " " + id+" "+cursor.getInt(0)+" "+" "+cursor.getInt(1)+" "+cursor.getString(4));
 
         if(senderid == id){
             Log.d("MessageAdapter"," view customized");

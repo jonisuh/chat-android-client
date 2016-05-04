@@ -30,13 +30,15 @@ public class CreateGroupDialog extends DialogFragment implements LoaderManager.L
 
     private SimpleCursorAdapter mAdapter;
     private String[] PROJECTION = new String[] {UsersTable.COLUMN_ID, UsersTable.COLUMN_NAME};
-    private String SELECTION = "";
+    private String SELECTION;
     private Uri CONTENT_URI = ChatProvider.USERS_CONTENT_URI;
     private ArrayList<Integer> selectedUsers;
     private  TextView groupnameinput;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        int myID = getActivity().getSharedPreferences(LoginManager.PREF_NAME, 0).getInt(LoginManager.KEY_ID,-1);
+        SELECTION = UsersTable.COLUMN_ID+"!="+myID;
         getLoaderManager().initLoader(0, null, this);
     }
 
@@ -45,10 +47,10 @@ public class CreateGroupDialog extends DialogFragment implements LoaderManager.L
         LayoutInflater li = LayoutInflater.from(getActivity());
         View dialog = li.inflate(R.layout.new_group_dialog, null);
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+        alertDialogBuilder.setView(dialog);
 
         selectedUsers = new ArrayList<>();
 
-        alertDialogBuilder.setView(dialog);
         ListView lv = (ListView) dialog.findViewById(R.id.listView2);
         groupnameinput = (TextView) dialog.findViewById(R.id.groupnameinput);
         String[] groupfromColumns = {UsersTable.COLUMN_NAME};
@@ -59,7 +61,6 @@ public class CreateGroupDialog extends DialogFragment implements LoaderManager.L
         lv.setAdapter(mAdapter);
 
         alertDialogBuilder
-                .setTitle("Create new group")
                 .setCancelable(false)
                 .setNegativeButton("Cancel",
                         new DialogInterface.OnClickListener() {
@@ -67,7 +68,7 @@ public class CreateGroupDialog extends DialogFragment implements LoaderManager.L
                                 dialog.cancel();
                             }
                         })
-                .setPositiveButton("OK",
+                .setPositiveButton("Create",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 String groupname = groupnameinput.getText().toString();

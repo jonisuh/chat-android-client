@@ -74,6 +74,21 @@ public class User{
         if(!this.username.equals(other.username)){
             return false;
         }
+        if(!this.firstname.equals(other.firstname)){
+            return false;
+        }
+        if(!this.lastname.equals(other.lastname)){
+            return false;
+        }
+        if(!this.department.equals(other.department)){
+            return false;
+        }
+        if(!this.title.equals(other.title)){
+            return false;
+        }
+        if(!this.email.equals(other.email)){
+            return false;
+        }
         return true;
     }
 }

@@ -52,13 +52,15 @@ public class MenuActivity extends AppCompatActivity implements LoaderManager.Loa
     private String SELECTION = "";
     private Uri CONTENT_URI = ChatProvider.GROUPS_CONTENT_URI;
 
+    private static Activity menuactivity;
+
     private Button usersbutton;
     private Button groupsbutton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
-
+        menuactivity = this;
         lv = (ListView)findViewById(R.id.listView);
 
         usernamefield = (TextView) findViewById(R.id.textView2);
@@ -77,53 +79,72 @@ public class MenuActivity extends AppCompatActivity implements LoaderManager.Loa
         groupsbutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                myAdapter.swapCursor(null);
                 PROJECTION = new String[]{GroupsTable.COLUMN_ID, GroupsTable.COLUMN_NAME};
                 CONTENT_URI = ChatProvider.GROUPS_CONTENT_URI;
                 changeToGroupAdapter();
                 getLoaderManager().restartLoader(0, null, MenuActivity.this);
-                groupsbutton.setBackgroundColor(0xFF29419e);
+                groupsbutton.setBackgroundResource(R.drawable.selected_button);
                 usersbutton.setBackgroundResource(R.drawable.blue_button);
             }
         });
-        groupsbutton.setBackgroundColor(0xFF29419e);
+        groupsbutton.setBackgroundResource(R.drawable.selected_button);
 
         usersbutton = (Button) findViewById(R.id.button2);
         usersbutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                myAdapter.swapCursor(null);
                 PROJECTION = new String[] {UsersTable.COLUMN_ID, UsersTable.COLUMN_NAME};
                 CONTENT_URI = ChatProvider.USERS_CONTENT_URI;
                 changeToUserAdapter();
                 getLoaderManager().restartLoader(0, null, MenuActivity.this);
-                usersbutton.setBackgroundColor(0xFF29419e);
+                usersbutton.setBackgroundResource(R.drawable.selected_button);
                 groupsbutton.setBackgroundResource(R.drawable.blue_button);
             }
         });
 
-        Button logoutbutton = (Button) findViewById(R.id.logoutbutton);
-        logoutbutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                LoginManager manager = new LoginManager(MenuActivity.this);
-                manager.logoutUser();
 
-                Intent backtologin = new Intent(MenuActivity.this, Login.class);
-                startActivity(backtologin);
-            }
-        });
-        Button button3 = (Button) findViewById(R.id.button3);
-        button3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DialogFragment dialog = new CreateGroupDialog();
-                dialog.show(getFragmentManager(), "CreateDialog");
-            }
-        });
-        Button menubutton = (Button) findViewById(R.id.button4);
+        Button menubutton = (Button) findViewById(R.id.menubutton);
         menubutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 PopupMenu menu = new PopupMenu(MenuActivity.this, v);
+                menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch (item.getItemId()) {
+                            case R.id.action_logout:
+                                LoginManager manager = new LoginManager(MenuActivity.this);
+                                manager.logoutUser();
+
+                                Intent closewebsocket = new Intent(MenuActivity.this, ChatWebSocketService.class);
+                                stopService(closewebsocket);
+
+                                Intent backtologin = new Intent(MenuActivity.this, Login.class);
+                                startActivity(backtologin);
+                                MenuActivity.this.finish();
+                                return true;
+                            case R.id.action_refresh:
+                                Intent loadusersintent = new Intent(MenuActivity.this, LoadUsersService.class);
+                                startService(loadusersintent);
+
+                                Intent loadgroupsintent = new Intent(MenuActivity.this, LoadGroupsService.class);
+                                startService(loadgroupsintent);
+
+                                Intent wsintent = new Intent(MenuActivity.this, ChatWebSocketService.class);
+
+                                startService(wsintent);
+                                return true;
+                            case R.id.action_new_group:
+                                DialogFragment dialog = new CreateGroupDialog();
+                                dialog.show(getFragmentManager(), "CreateDialog");
+                                return true;
+                            default:
+                                return false;
+                        }
+                    }
+                });
                 MenuInflater inflater = menu.getMenuInflater();
                 inflater.inflate(R.menu.menu_main, menu.getMenu());
                 menu.show();
@@ -132,12 +153,7 @@ public class MenuActivity extends AppCompatActivity implements LoaderManager.Loa
 
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                /*
-                Log.d("MenuActivity",""+R.id.user_fieldcontent);
-                Log.d("MenuActivity",""+R.layout.listitem_user);
-                Log.d("MenuActivity",""+R.id.userlistitem);
-                Log.d("MenuActivity",""+view.getId()); */
-                // When clicked, show a toast with the TextView text
+
                 TextView userview = (TextView) view.findViewById(R.id.user_fieldcontent);
                 TextView groupview = (TextView) view.findViewById(R.id.fieldcontent);
 
@@ -151,6 +167,8 @@ public class MenuActivity extends AppCompatActivity implements LoaderManager.Loa
                     startActivity(openchatintent);
                 }else{
                     selected = userview.getText().toString();
+                    DialogFragment dialog = ShowUserInfoDialog.newInstance((int) id);
+                    dialog.show(getFragmentManager(), "UserInfoDialog");
                 }
 
             }
@@ -218,22 +236,35 @@ public class MenuActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         }
     }
-
-
+    public static Activity getMenuactivity(){
+        return menuactivity;
+    }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Intent loadusersintent = new Intent(this, LoadUsersService.class);
-        startService(loadusersintent);
 
-        Intent loadgroupsintent = new Intent(this, LoadGroupsService.class);
-        startService(loadgroupsintent);
+        SharedPreferences pref = this.getSharedPreferences("BasicChatAppCredentials", 0);
+        int myID = pref.getInt("id", -1);
 
-        Intent wsintent = new Intent(this, ChatWebSocketService.class);
+        if(myID == -1){
+            Intent closewebsocket = new Intent(MenuActivity.this, ChatWebSocketService.class);
+            stopService(closewebsocket);
 
-        startService(wsintent);
+            Intent backtologin = new Intent(this, Login.class);;
+            startActivity(backtologin);
+            finish();
+        }else {
+            Intent loadusersintent = new Intent(this, LoadUsersService.class);
+            startService(loadusersintent);
 
+            Intent loadgroupsintent = new Intent(this, LoadGroupsService.class);
+            startService(loadgroupsintent);
+
+            Intent wsintent = new Intent(this, ChatWebSocketService.class);
+
+            startService(wsintent);
+        }
     }
 
     @Override

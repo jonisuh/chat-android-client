@@ -45,14 +45,13 @@ public class LoginService extends IntentService {
 
                     Log.d("intentservice", "Logged in, userid: " + credentials.getId() + " authcred: " + credentials.getAuthcredentials());
 
-                    broadcastToast("Logged in!");
-
                     SharedPreferences pref = this.getSharedPreferences("BasicChatAppCredentials", 0);
                     boolean b = pref.getBoolean("IsLoggedIn",false);
                     Log.d("intentservice", "" + b);
                     if(b){
                         Intent menuintent = new Intent(this, MenuActivity.class);
                         menuintent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        menuintent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                         startActivity(menuintent);
                     }
                 }

@@ -15,22 +15,15 @@ public class LoginManager {
     // Editor for Shared preferences
     SharedPreferences.Editor editor;
 
-    // Context
     Context _context;
 
-    // Shared pref mode
     int PRIVATE_MODE = 0;
-
-    // Sharedpref file name
     public static final String PREF_NAME = "BasicChatAppCredentials";
 
-    // All Shared Preferences Keys
     private static final String IS_LOGIN = "IsLoggedIn";
 
-    // User name (make variable public to access from outside)
     public static final String KEY_ID = "id";
 
-    // Email address (make variable public to access from outside)
     public static final String KEY_CRED = "credentials";
 
     // Constructor
